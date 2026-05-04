@@ -1,4 +1,21 @@
-venv/
+# Python
 __pycache__/
-*.db
-.env
+*.pyc
+
+# Virtual env
+venv/
+
+# OS files
+.* 
+!.gitignore
+
+# Large folders
+Downloads/
+Desktop/
+Videos/
+Pictures/
+
+# Tools / junk
+BurpSuite/
+msf4/
+.nmap/

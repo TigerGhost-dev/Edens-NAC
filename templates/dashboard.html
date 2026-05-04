@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Eden NAC</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #020617;
+            position: fixed;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: white;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #cbd5f5;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .sidebar a:hover {
+            background: #1e293b;
+        }
+
+        .submenu {
+            padding-left: 20px;
+            font-size: 13px;
+        }
+
+        .main {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .header {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+        }
+
+        .card {
+            flex: 1;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background: #1e293b;
+        }
+
+        th, td {
+            padding: 10px;
+        }
+
+        th {
+            background: #020617;
+        }
+
+        tr:nth-child(even) {
+            background: #334155;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>Eden NAC</h2>
+
+    <!-- USERS -->
+    <a href="#">Users & Hosts</a>
+    <div class="submenu">
+        <a href="/templates/users.html">Manage Users</a>
+        <a href="#">Approve Registrations</a>
+    </div>
+
+    <!-- NETWORK -->
+    <a href="#">Network</a>
+    <div class="submenu">
+        <a href="#">Service Connectors</a>
+        <a href="#">CLI Configuration</a>
+        <a href="#">L2 Polling</a>
+        <a href="#">L3 Polling</a>
+        <a href="#">Network Events</a>
+        <a href="#">Port Changes</a>
+        <a href="#">Open Ports Scan</a>
+    </div>
+
+    <!-- POLICY -->
+    <a href="#">Policy & Objects</a>
+
+    <!-- PORTAL -->
+    <a href="#">Portal</a>
+
+    <!-- LOGS -->
+    <a href="#">Logs</a>
+
+    <!-- SYSTEM -->
+    <a href="#">System</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <div class="header">
+        Dashboard
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+        <div class="card">
+            <h2>{{ logs|length }}</h2>
+            <p>Total Logs</p>
+        </div>
+
+        <div class="card">
+            <h2>{{ devices|length }}</h2>
+            <p>Devices</p>
+        </div>
+
+        <div class="card">
+            <h2>1</h2>
+            <p>Active Users</p>
+        </div>
+    </div>
+
+    <!-- DEVICES -->
+    <h3>Devices</h3>
+
+    {% if devices %}
+    <table>
+        <tr>
+            <th>IP</th>
+            <th>MAC</th>
+        </tr>
+
+        {% for d in devices %}
+        <tr>
+            <td>{{ d.ip }}</td>
+            <td>{{ d.mac }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No devices detected</p>
+    {% endif %}
+
+    <!-- LOGS -->
+    <h3>Logs</h3>
+
+    <table>
+        <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Time</th>
+        </tr>
+
+        {% for log in logs %}
+        <tr>
+            <td>{{ log[1] }}</td>
+            <td>{{ log[2] }}</td>
+            <td>{{ log[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+</body>
+</html>

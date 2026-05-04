@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Users</title>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e293b;
+        }
+
+        th, td {
+            padding: 10px;
+        }
+
+        th {
+            background: #020617;
+        }
+
+        tr:nth-child(even) {
+            background: #334155;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            text-decoration: none;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .delete {
+            background: red;
+        }
+
+        .approve {
+            background: green;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Manage Users & Hosts</h2>
+
+<form method="GET">
+    <input type="text" name="mac" placeholder="Search by MAC address">
+    <button type="submit">Search</button>
+</form>
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Username</th>
+    <th>MAC</th>
+    <th>IP</th>
+    <th>OS</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+
+{% for u in users %}
+<tr>
+    <td>{{ u[0] }}</td>
+    <td>{{ u[1] }}</td>
+    <td>{{ u[3] }}</td>
+    <td>{{ u[4] }}</td>
+    <td>{{ u[5] }}</td>
+    <td>{{ u[6] }}</td>
+    <td>
+        <a class="btn delete" href="/delete_user/{{ u[0] }}">Delete</a>
+
+        {% if u[6] != 'approved' %}
+        <a class="btn approve" href="/approve_user/{{ u[0] }}">Approve</a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>
