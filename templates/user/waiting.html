@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Awaiting Approval</title>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            width: 400px;
+        }
+
+        .loader {
+            border: 6px solid #334155;
+            border-top: 6px solid #38bdf8;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+            margin-top: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Awaiting Admin Approval</h2>
+
+    <p>
+        Your registration request has been sent to the network administrator.
+    </p>
+
+    <p>
+        Internet access will be granted once approved.
+    </p>
+
+    <div class="loader"></div>
+
+</div>
+
+</body>
+</html>
