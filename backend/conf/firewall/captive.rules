@@ -1,0 +1,94 @@
+#!/bin/bash
+
+LAN=wlan0
+WAN=wlan1
+PORTAL=192.168.50.1
+
+iptables -F
+iptables -t nat -F
+
+############################################
+# Enable NAT
+############################################
+
+iptables -t nat -A POSTROUTING \
+-o $WAN \
+-j MASQUERADE
+
+############################################
+# DHCP
+############################################
+
+iptables -A INPUT \
+-i $LAN \
+-p udp \
+--dport 67 \
+-j ACCEPT
+
+iptables -A INPUT \
+-i $LAN \
+-p udp \
+--dport 68 \
+-j ACCEPT
+
+############################################
+# DNS
+############################################
+
+iptables -A INPUT \
+-i $LAN \
+-p udp \
+--dport 53 \
+-j ACCEPT
+
+iptables -A INPUT \
+-i $LAN \
+-p tcp \
+--dport 53 \
+-j ACCEPT
+
+############################################
+# Portal
+############################################
+
+iptables -A INPUT \
+-i $LAN \
+-p tcp \
+--dport 5000 \
+-j ACCEPT
+
+############################################
+# Redirect HTTP
+############################################
+
+iptables -t nat \
+-A PREROUTING \
+-i $LAN \
+-p tcp \
+--dport 80 \
+-j REDIRECT \
+--to-port 5000
+
+############################################
+# Allow localhost
+############################################
+
+iptables -A INPUT \
+-i lo \
+-j ACCEPT
+
+############################################
+# Block all forwarding
+############################################
+
+iptables -A FORWARD \
+-i $LAN \
+-o $WAN \
+-j DROP
+
+iptables -A FORWARD \
+-i $WAN \
+-o $LAN \
+-m state \
+--state RELATED,ESTABLISHED \
+-j ACCEPT

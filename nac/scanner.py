@@ -1,17 +1,50 @@
-from scapy.all import ARP, Ether, srp
+import sqlite3
+import subprocess
 
-def scan_network(network="192.168.1.0/24"):
-    arp = ARP(pdst=network)
-    ether = Ether(dst="ff:ff:ff:ff:ff:ff")
-    packet = ether / arp
+from nac.firewall import block_device
 
-    result = srp(packet, timeout=2, verbose=0)[0]
 
-    devices = []
-    for sent, received in result:
-        devices.append({
-            "ip": received.psrc,
-            "mac": received.hwsrc
-        })
+def scan_network():
 
-    return devices
+    output = subprocess.getoutput(
+        "sudo arp-scan --interface=wlan0 --localnet"
+    )
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    lines = output.splitlines()
+
+    for line in lines:
+
+        parts = line.split()
+
+        if len(parts) < 2:
+            continue
+
+        ip = parts[0]
+        mac = parts[1]
+
+        c.execute(
+            "SELECT authenticated FROM devices WHERE mac=?",
+            (mac,)
+        )
+
+        row = c.fetchone()
+
+        if row is None:
+
+            c.execute("""
+            INSERT OR IGNORE INTO devices
+            (mac, ip, authenticated)
+            VALUES (?, ?, 0)
+            """, (mac, ip))
+
+            block_device(mac)
+
+        elif row[0] == 0:
+
+            block_device(mac)
+
+    conn.commit()
+    conn.close()

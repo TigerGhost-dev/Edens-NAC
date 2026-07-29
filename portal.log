@@ -1,0 +1,50 @@
+[+] Eden NAC Controller Started
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.26:5000
+Press CTRL+C to quit
+ * Restarting with watchdog (inotify)
+ * Debugger is active!
+ * Debugger PIN: 814-939-926
+192.168.50.14 - - [25/Jul/2026 22:27:55] "GET /hotspot-detect.html HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:57] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:58] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:59] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:59] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:59] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:27:59] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:04] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:04] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:05] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:05] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:05] "GET /user/portal HTTP/1.1" 404 -
+192.168.50.14 - - [25/Jul/2026 22:28:12] "GET / HTTP/1.1" 302 -
+192.168.50.14 - - [25/Jul/2026 22:28:12] "GET /portal HTTP/1.1" 200 -
+192.168.50.14 - - [25/Jul/2026 22:30:34] "POST /chat HTTP/1.1" 404 -
+192.168.50.99 - - [25/Jul/2026 22:33:11] "GET / HTTP/1.1" 302 -
+192.168.50.99 - - [25/Jul/2026 22:33:12] "GET / HTTP/1.1" 302 -
+192.168.50.99 - - [25/Jul/2026 22:33:12] "GET /portal HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:33:12] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.50.99 - - [25/Jul/2026 22:33:21] "POST /login HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:33:23] "POST /login HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:33:25] "POST /login HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:33:39] "POST /chat HTTP/1.1" 404 -
+192.168.50.99 - - [25/Jul/2026 22:33:41] "POST /login HTTP/1.1" 200 -
+192.168.50.14 - - [25/Jul/2026 22:44:19] "GET / HTTP/1.1" 302 -
+192.168.50.14 - - [25/Jul/2026 22:44:19] "GET /portal HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:45:41] "GET /portal HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:45:53] "POST /chat HTTP/1.1" 404 -
+192.168.50.99 - - [25/Jul/2026 22:45:58] "GET /portal HTTP/1.1" 200 -
+192.168.50.99 - - [25/Jul/2026 22:47:05] "POST /chat HTTP/1.1" 404 -
+ * Detected change in '/home/eden/Edens-NAC/nac/firewall.py', reloading
+[+] Eden NAC Controller Started
+ * Restarting with watchdog (inotify)
+Traceback (most recent call last):
+  File "/home/eden/Edens-NAC/app.py", line 6, in <module>
+    from nac.controller import controller
+  File "/home/eden/Edens-NAC/nac/controller.py", line 5, in <module>
+    from nac.firewall import block_device, allow_device
+ImportError: cannot import name 'block_device' from 'nac.firewall' (/home/eden/Edens-NAC/nac/firewall.py)
