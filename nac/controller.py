@@ -1,17 +1,22 @@
-import time
 import sqlite3
 import subprocess
+import time
 
-from nac.firewall import (
-    block_device,
-    allow_device
-)
+from nac.firewall import allow_device, block_device
 
 DATABASE = "database.db"
 
 
 ###############################################################
-# Scan devices connected to the AP
+# Database
+###############################################################
+
+def db():
+    return sqlite3.connect(DATABASE)
+
+
+###############################################################
+# Discover devices
 ###############################################################
 
 def get_devices():
@@ -26,20 +31,30 @@ def get_devices():
 
         parts = line.split()
 
-        if len(parts) < 5:
+        ###################################################
+        # Ignore IPv6 neighbours
+        ###################################################
+
+        if ":" in parts[0]:
+            continue
+
+        ###################################################
+        # Ignore incomplete entries
+        ###################################################
+
+        if "lladdr" not in parts:
             continue
 
         ip = parts[0]
-        mac = parts[4]
 
-        if mac.lower() == "lladdr":
+        mac = parts[parts.index("lladdr") + 1].lower()
+
+        if mac == "failed":
             continue
 
         devices.append({
-
             "ip": ip,
-            "mac": mac.lower()
-
+            "mac": mac
         })
 
     return devices
@@ -51,38 +66,32 @@ def get_devices():
 
 def sync_database():
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db()
     c = conn.cursor()
 
-    devices = get_devices()
-
-    for device in devices:
+    for device in get_devices():
 
         ip = device["ip"]
         mac = device["mac"]
 
         c.execute(
-
             """
             SELECT authenticated
             FROM devices
             WHERE mac=?
             """,
-
             (mac,)
-
         )
 
         row = c.fetchone()
 
         ###################################################
-        # First time seeing device
+        # New device
         ###################################################
 
         if row is None:
 
             c.execute(
-
                 """
                 INSERT INTO devices
                 (
@@ -95,52 +104,27 @@ def sync_database():
                     ?,?,0
                 )
                 """,
-
-                (
-                    mac,
-                    ip
-                )
-
+                (mac, ip)
             )
 
-            block_device(mac)
-
-            print(f"[NEW] {mac}")
-
-            continue
+            print(f"[NEW DEVICE] {mac}")
 
         ###################################################
-        # Update IP
+        # Existing device
         ###################################################
-
-        c.execute(
-
-            """
-            UPDATE devices
-            SET
-                ip=?,
-                last_seen=CURRENT_TIMESTAMP
-            WHERE mac=?
-            """,
-
-            (
-                ip,
-                mac
-            )
-
-        )
-
-        ###################################################
-        # Firewall
-        ###################################################
-
-        if row[0] == 1:
-
-            allow_device(mac)
 
         else:
 
-            block_device(mac)
+            c.execute(
+                """
+                UPDATE devices
+                SET
+                    ip=?,
+                    last_seen=CURRENT_TIMESTAMP
+                WHERE mac=?
+                """,
+                (ip, mac)
+            )
 
     conn.commit()
     conn.close()
@@ -152,19 +136,16 @@ def sync_database():
 
 def authenticate_user(username):
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db()
     c = conn.cursor()
 
     c.execute(
-
         """
         SELECT mac
         FROM devices
         WHERE username=?
         """,
-
         (username,)
-
     )
 
     row = c.fetchone()
@@ -176,43 +157,37 @@ def authenticate_user(username):
         allow_device(mac)
 
         c.execute(
-
             """
             UPDATE devices
             SET authenticated=1
             WHERE mac=?
             """,
-
             (mac,)
-
         )
 
         conn.commit()
 
-        print(f"[ALLOW] {mac}")
+        print(f"[AUTHORIZED] {mac}")
 
     conn.close()
 
 
 ###############################################################
-# Logout
+# Logout user
 ###############################################################
 
 def logout_user(username):
 
-    conn = sqlite3.connect(DATABASE)
+    conn = db()
     c = conn.cursor()
 
     c.execute(
-
         """
         SELECT mac
         FROM devices
         WHERE username=?
         """,
-
         (username,)
-
     )
 
     row = c.fetchone()
@@ -224,40 +199,37 @@ def logout_user(username):
         block_device(mac)
 
         c.execute(
-
             """
             UPDATE devices
-            SET authenticated=0
+            SET
+                authenticated=0,
+                username=NULL
             WHERE mac=?
             """,
-
             (mac,)
-
         )
 
         conn.commit()
 
-        print(f"[BLOCK] {mac}")
+        print(f"[REVOKED] {mac}")
 
     conn.close()
 
 
 ###############################################################
-# Main controller loop
+# Background discovery
 ###############################################################
 
 def controller():
 
-    print("[+] Eden NAC Controller Started")
+    print("[+] Eden NAC Controller Running")
 
     while True:
 
         try:
-
             sync_database()
 
         except Exception as e:
-
             print(e)
 
-        time.sleep(3)
+        time.sleep(5)

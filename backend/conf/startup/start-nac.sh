@@ -1,168 +1,140 @@
 #!/bin/bash
 
-##############################################
-# Eden's NAC Startup Script
-##############################################
-
 set -e
 
 PROJECT_DIR="/home/eden/Edens-NAC"
 CONF_DIR="$PROJECT_DIR/backend/conf"
 
-AP_IFACE="wlan0"
+LAN_IFACE="wlan0"
 WAN_IFACE="wlan1"
 
-AP_IP="192.168.50.1"
-PORTAL_PORT="5000"
+LAN_IP="192.168.50.1"
 
-echo
-echo "========================================"
-echo "        Eden's NAC Starting"
-echo "========================================"
-echo
+echo "======================================="
+echo "      Starting Eden NAC"
+echo "======================================="
 
-##############################################
-# Stop old services
-##############################################
-
-echo "[1/10] Stopping old services..."
+#############################################
+# Stop previous instances
+#############################################
 
 pkill -f "python3 app.py" 2>/dev/null || true
 pkill hostapd 2>/dev/null || true
 pkill dnsmasq 2>/dev/null || true
 
-##############################################
-# Release wlan0 from NetworkManager
-##############################################
+#############################################
+# Release wlan0 ONLY
+#############################################
 
-echo "[2/10] Releasing wlan0..."
+echo "[1/10] Releasing wlan0 from NetworkManager..."
 
-systemctl stop wpa_supplicant@$AP_IFACE 2>/dev/null || true
-killall wpa_supplicant 2>/dev/null || true
+nmcli device set $LAN_IFACE managed no || true
 
-nmcli dev set $AP_IFACE managed no 2>/dev/null || true
+ip link set $LAN_IFACE down
 
-rfkill unblock wifi
+sleep 1
 
-##############################################
-# Configure AP Interface
-##############################################
+#############################################
+# Configure AP mode
+#############################################
 
-echo "[3/10] Configuring wlan0..."
+echo "[2/10] Configuring AP interface..."
 
-ip link set $AP_IFACE down
+iw dev $LAN_IFACE set type __ap
 
-ip addr flush dev $AP_IFACE
+ip addr flush dev $LAN_IFACE
 
-iw dev $AP_IFACE set type __ap
+ip addr add ${LAN_IP}/24 dev $LAN_IFACE
 
-ip addr add $AP_IP/24 dev $AP_IFACE
+ip link set $LAN_IFACE up
 
-ip link set $AP_IFACE up
+#############################################
+# Enable routing
+#############################################
 
-##############################################
-# Enable Routing
-##############################################
-
-echo "[4/10] Enabling IP Forwarding..."
+echo "[3/10] Enabling IP forwarding..."
 
 sysctl -w net.ipv4.ip_forward=1
 
-##############################################
-# Firewall Reset
-##############################################
+#############################################
+# Reset firewall
+#############################################
 
-echo "[5/10] Resetting firewall..."
+echo "[4/10] Resetting firewall..."
 
 iptables -F
 iptables -X
-
 iptables -t nat -F
 iptables -t nat -X
 
-##############################################
-# Default Forward Policy
-##############################################
+#############################################
+# Create EDEN_NAC chain
+#############################################
 
-iptables -P FORWARD ACCEPT
+echo "[5/10] Building firewall..."
 
-##############################################
+iptables -N EDEN_NAC
+
+iptables -A FORWARD \
+-i $LAN_IFACE \
+-o $WAN_IFACE \
+-j EDEN_NAC
+
+iptables -A FORWARD \
+-i $WAN_IFACE \
+-o $LAN_IFACE \
+-m conntrack \
+--ctstate RELATED,ESTABLISHED \
+-j ACCEPT
+
+iptables -A EDEN_NAC \
+-m conntrack \
+--ctstate RELATED,ESTABLISHED \
+-j ACCEPT
+
+#
+# DEFAULT:
+# Nobody gets Internet.
+#
+
+iptables -A EDEN_NAC -j DROP
+
+#############################################
 # NAT
-##############################################
-
-echo "[6/10] Configuring NAT..."
+#############################################
 
 iptables -t nat -A POSTROUTING \
 -o $WAN_IFACE \
 -j MASQUERADE
 
-iptables -A FORWARD \
--i $WAN_IFACE \
--o $AP_IFACE \
--m state \
---state RELATED,ESTABLISHED \
--j ACCEPT
-
-##############################################
-# DNS
-##############################################
-
-iptables -A INPUT \
--i $AP_IFACE \
--p udp \
---dport 53 \
--j ACCEPT
-
-iptables -A INPUT \
--i $AP_IFACE \
--p tcp \
---dport 53 \
--j ACCEPT
-
-##############################################
-# DHCP
-##############################################
-
-iptables -A INPUT \
--i $AP_IFACE \
--p udp \
---dport 67 \
--j ACCEPT
-
-iptables -A INPUT \
--i $AP_IFACE \
--p udp \
---dport 68 \
--j ACCEPT
-
-##############################################
-# Portal
-##############################################
-
-iptables -A INPUT \
--i $AP_IFACE \
--p tcp \
---dport $PORTAL_PORT \
--j ACCEPT
-
-##############################################
+#############################################
 # Captive Portal Redirect
-##############################################
-
-echo "[7/10] Installing captive portal..."
+#############################################
 
 iptables -t nat -A PREROUTING \
--i $AP_IFACE \
+-i $LAN_IFACE \
 -p tcp \
 --dport 80 \
 -j REDIRECT \
---to-ports $PORTAL_PORT
+--to-port 5000
 
-##############################################
-# Start hostapd
-##############################################
+#############################################
+# Local Services
+#############################################
 
-echo "[8/10] Starting hostapd..."
+iptables -A INPUT -i $LAN_IFACE -p udp --dport 67 -j ACCEPT
+iptables -A INPUT -i $LAN_IFACE -p udp --dport 68 -j ACCEPT
+
+iptables -A INPUT -i $LAN_IFACE -p udp --dport 53 -j ACCEPT
+iptables -A INPUT -i $LAN_IFACE -p tcp --dport 53 -j ACCEPT
+
+iptables -A INPUT -i $LAN_IFACE -p tcp --dport 5000 -j ACCEPT
+
+#############################################
+# Start Hostapd
+#############################################
+
+echo "[6/10] Starting hostapd..."
 
 hostapd \
 $CONF_DIR/hostapd/hostapd.conf \
@@ -170,34 +142,58 @@ $CONF_DIR/hostapd/hostapd.conf \
 
 sleep 2
 
-##############################################
-# Start dnsmasq
-##############################################
+#############################################
+# Start DNSMASQ
+#############################################
 
-echo "[9/10] Starting dnsmasq..."
+echo "[7/10] Starting dnsmasq..."
 
 dnsmasq \
 -C $CONF_DIR/dnsmasq/eden-nac.conf
 
-##############################################
-# Start Flask + Controller
-##############################################
+#############################################
+# Start Flask
+#############################################
 
-echo "[10/10] Starting Eden Portal..."
+echo "[8/10] Starting portal..."
 
 cd "$PROJECT_DIR"
 
-python3 app.py &
+python3 app.py > /tmp/eden-nac.log 2>&1 &
 
-sleep 3
+FLASK_PID=$!
+
+echo $FLASK_PID > /tmp/eden-nac.pid
+
+echo "Waiting for portal..."
+
+for i in {1..10}; do
+    if ss -tln | grep -q ":5000"; then
+        echo "[✓] Portal started."
+        break
+    fi
+    sleep 1
+done
+
+if ! ss -tln | grep -q ":5000"; then
+    echo
+    echo "[ERROR] Flask failed to start."
+    echo
+    echo "===== Flask Log ====="
+    cat /tmp/eden-nac.log
+    exit 1
+fi
+
+#############################################
+# Status
+#############################################
 
 echo
-echo "========================================"
-echo " Eden's NAC Started Successfully"
-echo "========================================"
-echo
+
 echo "SSID      : Eden-NAC"
 echo "Gateway   : 192.168.50.1"
 echo "Portal    : http://192.168.50.1:5000"
-echo "WAN       : $WAN_IFACE"
+
 echo
+
+echo "[✓] Eden NAC Running"

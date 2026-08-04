@@ -1,59 +1,46 @@
 import subprocess
 
+CHAIN = "EDEN_NAC"
+
+
 ###############################################################
 # Helper
 ###############################################################
 
 def run(cmd):
 
-    subprocess.run(
+    return subprocess.run(
         cmd,
         shell=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
-    )
+    ).returncode == 0
+
 
 ###############################################################
-# Remove all rules for a MAC
+# Remove ACCEPT rule for a MAC
 ###############################################################
 
-def clear_device(mac):
+def _remove_allow(mac):
 
     while True:
 
         result = subprocess.run(
 
-            f"iptables -D FORWARD -m mac --mac-source {mac} -j DROP",
+            f"iptables -D {CHAIN} "
+            f"-m mac --mac-source {mac} "
+            "-j ACCEPT",
 
             shell=True,
 
             stdout=subprocess.DEVNULL,
-
             stderr=subprocess.DEVNULL
 
         )
 
         if result.returncode != 0:
-
             break
 
-###############################################################
-# Block Internet ONLY
-###############################################################
-
-def block_device(mac):
-
-    clear_device(mac)
-
-    run(
-
-        f"iptables -I FORWARD 1 "
-        f"-m mac --mac-source {mac} "
-        f"-i wlan0 "
-        f"-o wlan1 "
-        f"-j DROP"
-
-    )
 
 ###############################################################
 # Allow Internet
@@ -61,14 +48,47 @@ def block_device(mac):
 
 def allow_device(mac):
 
-    clear_device(mac)
+    _remove_allow(mac)
+
+    run(
+
+        f"iptables -I {CHAIN} 1 "
+        f"-m mac --mac-source {mac} "
+        "-j ACCEPT"
+
+    )
+
+    print(f"[ALLOW] {mac}")
+
 
 ###############################################################
-# Flush everything
+# Block Internet
 ###############################################################
 
-def reset_firewall():
+def block_device(mac):
 
-    run("iptables -F")
+    _remove_allow(mac)
 
-    run("iptables -t nat -F")
+    print(f"[BLOCK] {mac}")
+
+
+###############################################################
+# Check authorization
+###############################################################
+
+def is_allowed(mac):
+
+    result = subprocess.run(
+
+        f"iptables -C {CHAIN} "
+        f"-m mac --mac-source {mac} "
+        "-j ACCEPT",
+
+        shell=True,
+
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+
+    )
+
+    return result.returncode == 0

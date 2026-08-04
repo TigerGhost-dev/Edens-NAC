@@ -160,14 +160,22 @@ def register():
 # LOGIN
 ###############################################################
 
+###############################################################
+# LOGIN
+###############################################################
+
 @app.route("/login", methods=["POST"])
 def login():
 
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.form["username"].strip()
+    password = request.form["password"].strip()
 
     conn = db()
     c = conn.cursor()
+
+    ####################################################
+    # Verify User
+    ####################################################
 
     c.execute(
         """
@@ -183,15 +191,13 @@ def login():
 
     user = c.fetchone()
 
-    if not user:
+    if user is None:
 
         conn.close()
 
         return jsonify({
-
             "success": False,
             "message": "User not found"
-
         })
 
     if user[1] != password:
@@ -199,10 +205,8 @@ def login():
         conn.close()
 
         return jsonify({
-
             "success": False,
             "message": "Wrong password"
-
         })
 
     if user[2] != "approved":
@@ -210,14 +214,12 @@ def login():
         conn.close()
 
         return jsonify({
-
             "success": False,
             "message": "Waiting for administrator approval"
-
         })
 
     ####################################################
-    # Find client's MAC using its IP
+    # Find Device By Client IP
     ####################################################
 
     ip = request.remote_addr
@@ -233,21 +235,19 @@ def login():
 
     device = c.fetchone()
 
-    if not device:
+    if device is None:
 
         conn.close()
 
         return jsonify({
-
             "success": False,
-            "message": "Device not registered"
-
+            "message": "Device not registered with the NAC"
         })
 
     mac = device[0]
 
     ####################################################
-    # Update device
+    # Associate Device With User
     ####################################################
 
     c.execute(
@@ -255,7 +255,8 @@ def login():
         UPDATE devices
         SET
             username=?,
-            authenticated=1
+            authenticated=1,
+            last_seen=CURRENT_TIMESTAMP
         WHERE mac=?
         """,
         (
@@ -268,20 +269,22 @@ def login():
     conn.close()
 
     ####################################################
-    # Allow Internet
+    # Authorize Firewall
     ####################################################
 
     authenticate_user(username)
+
+    ####################################################
+    # Create Session
+    ####################################################
 
     session["username"] = username
 
     log_event(username, "LOGIN")
 
     return jsonify({
-
         "success": True,
         "message": "Access Granted"
-
     })
 
 
@@ -432,7 +435,7 @@ def users():
             u.role,
             d.mac,
             d.ip,
-            d.os,
+            d.authenticated,
             u.status
         FROM users u
 
