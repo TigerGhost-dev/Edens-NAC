@@ -1,199 +1,239 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Eden NAC</title>
+{% extends "base_admin.html" %}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
+{% block title %}
+Eden NAC - Dashboard
+{% endblock %}
 
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            background: #020617;
-            position: fixed;
-            padding-top: 20px;
-        }
 
-        .sidebar h2 {
-            text-align: center;
-            color: white;
-        }
+{% block extra_style %}
 
-        .sidebar a {
-            display: block;
-            padding: 12px 20px;
-            color: #cbd5f5;
-            text-decoration: none;
-            font-size: 14px;
-        }
+<style>
 
-        .sidebar a:hover {
-            background: #1e293b;
-        }
+    .cards {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
 
-        .submenu {
-            padding-left: 20px;
-            font-size: 13px;
-        }
+    .card {
+        flex: 1;
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
 
-        .main {
-            margin-left: 250px;
-            padding: 20px;
-        }
+    .card h2 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+    }
 
-        .header {
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
+    .card p {
+        margin: 0;
+        color: #94a3b8;
+    }
 
-        .cards {
-            display: flex;
-            gap: 20px;
-        }
+    table {
+        width: 100%;
+        margin-top: 15px;
+        border-collapse: collapse;
+        background: #1e293b;
+    }
 
-        .card {
-            flex: 1;
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
+    th,
+    td {
+        padding: 10px;
+        text-align: left;
+    }
 
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            background: #1e293b;
-        }
+    th {
+        background: #020617;
+    }
 
-        th, td {
-            padding: 10px;
-        }
+    tr:nth-child(even) {
+        background: #334155;
+    }
 
-        th {
-            background: #020617;
-        }
+    .status-online {
+        color: #22c55e;
+        font-weight: bold;
+    }
 
-        tr:nth-child(even) {
-            background: #334155;
-        }
-    </style>
-</head>
+    .status-offline {
+        color: #94a3b8;
+    }
 
-<body>
+    .empty {
+        color: #94a3b8;
+        padding: 15px 0;
+    }
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-    <h2>Eden NAC</h2>
+</style>
 
-    <!-- USERS -->
-    <a href="#">Users & Hosts</a>
-    <div class="submenu">
-        <a href="/templates/users.html">Manage Users</a>
-        <a href="#">Approve Registrations</a>
-    </div>
-    
+{% endblock %}
+
+
+{% block content %}
+
+<div class="header">
+    Dashboard
+</div>
+
+
+<!-- DASHBOARD CARDS -->
+
+<div class="cards">
+
     <div class="card">
-    <h2>{{ pending_count }}</h2>
-    <p>Pending Approvals</p>
-</div>
 
-    <!-- NETWORK -->
-    <a href="#">Network</a>
-    <div class="submenu">
-        <a href="#">Service Connectors</a>
-        <a href="#">CLI Configuration</a>
-        <a href="#">L2 Polling</a>
-        <a href="#">L3 Polling</a>
-        <a href="#">Network Events</a>
-        <a href="#">Port Changes</a>
-        <a href="#">Open Ports Scan</a>
+        <h2>
+            {{ logs|length }}
+        </h2>
+
+        <p>
+            Total Logs
+        </p>
+
     </div>
 
-    <!-- POLICY -->
-    <a href="#">Policy & Objects</a>
 
-    <!-- PORTAL -->
-    <a href="#">Portal</a>
+    <div class="card">
 
-    <!-- LOGS -->
-    <a href="#">Logs</a>
+        <h2>
+            {{ devices|length }}
+        </h2>
 
-    <!-- SYSTEM -->
-    <a href="#">System</a>
-</div>
+        <p>
+            Devices
+        </p>
 
-<!-- MAIN CONTENT -->
-<div class="main">
-
-    <div class="header">
-        Dashboard
     </div>
 
-    <!-- CARDS -->
-    <div class="cards">
-        <div class="card">
-            <h2>{{ logs|length }}</h2>
-            <p>Total Logs</p>
-        </div>
 
-        <div class="card">
-            <h2>{{ devices|length }}</h2>
-            <p>Devices</p>
-        </div>
+    <div class="card">
 
-        <div class="card">
-            <h2>1</h2>
-            <p>Active Users</p>
-        </div>
+        <h2>
+            {{ pending_count }}
+        </h2>
+
+        <p>
+            Pending Approvals
+        </p>
+
     </div>
-
-    <!-- DEVICES -->
-    <h3>Devices</h3>
-
-    {% if devices %}
-    <table>
-        <tr>
-            <th>IP</th>
-            <th>MAC</th>
-        </tr>
-
-        {% for d in devices %}
-        <tr>
-            <td>{{ d.ip }}</td>
-            <td>{{ d.mac }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-    <p>No devices detected</p>
-    {% endif %}
-
-    <!-- LOGS -->
-    <h3>Logs</h3>
-
-    <table>
-        <tr>
-            <th>User</th>
-            <th>Action</th>
-            <th>Time</th>
-        </tr>
-
-        {% for log in logs %}
-        <tr>
-            <td>{{ log[1] }}</td>
-            <td>{{ log[2] }}</td>
-            <td>{{ log[3] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
 
 </div>
 
-</body>
-</html>
+
+<!-- DEVICES -->
+
+<h3>
+    Connected Devices
+</h3>
+
+
+{% if devices %}
+
+<table>
+
+    <tr>
+        <th>IP Address</th>
+        <th>MAC Address</th>
+        <th>Username</th>
+        <th>Status</th>
+        <th>Last Seen</th>
+    </tr>
+
+
+    {% for d in devices %}
+
+    <tr>
+
+        <td>
+            {{ d[2] or '-' }}
+        </td>
+
+        <td>
+            {{ d[1] }}
+        </td>
+
+        <td>
+            {{ d[3] or '-' }}
+        </td>
+
+        <td>
+
+            {% if d[4] == 1 %}
+
+                <span class="status-online">
+                    AUTHENTICATED
+                </span>
+
+            {% else %}
+
+                <span class="status-offline">
+                    NOT AUTHENTICATED
+                </span>
+
+            {% endif %}
+
+        </td>
+
+        <td>
+            {{ d[5] }}
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p class="empty">
+    No devices detected.
+</p>
+
+{% endif %}
+
+
+<!-- RECENT LOGINS -->
+
+<h3>
+    Recent Activity
+</h3>
+
+
+<table>
+
+    <tr>
+        <th>User</th>
+        <th>Action</th>
+        <th>Time</th>
+    </tr>
+
+
+    {% for log in logs[:10] %}
+
+    <tr>
+
+        <td>
+            {{ log[1] or '-' }}
+        </td>
+
+        <td>
+            {{ log[2] }}
+        </td>
+
+        <td>
+            {{ log[3] }}
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}

@@ -315,23 +315,20 @@ def logout():
 def admin():
 
     if request.method == "GET":
-
         return render_template("admin/login.html")
 
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.form["username"].strip()
+    password = request.form["password"].strip()
 
     conn = db()
     c = conn.cursor()
 
     c.execute(
         """
-        SELECT role
-        FROM users
-        WHERE
-            username=?
-        AND
-            password=?
+        SELECT id, username
+        FROM admins
+        WHERE username=?
+        AND password=?
         """,
         (
             username,
@@ -339,19 +336,14 @@ def admin():
         )
     )
 
-    admin = c.fetchone()
+    admin_user = c.fetchone()
 
     conn.close()
 
-    if not admin:
+    if admin_user is None:
+        return "Invalid administrator login", 401
 
-        return "Invalid Login"
-
-    if admin[0] != "admin":
-
-        return "Not an administrator"
-
-    session["admin"] = username
+    session["admin"] = admin_user[1]
 
     return redirect("/dashboard")
 
@@ -402,16 +394,160 @@ def dashboard():
     conn.close()
 
     return render_template(
+    "admin/dashboard.html",
+    logs=logs,
+    devices=devices,
+    pending_count=pending,
+    active_page="dashboard"
+)
 
-        "admin/dashboard.html",
 
-        logs=logs,
 
-        devices=devices,
+###############################################################
+# LIVE DASHBOARD API
+###############################################################
 
-        pending_count=pending
+@app.route("/api/dashboard")
+def dashboard_api():
 
+    if "admin" not in session:
+        return jsonify({
+            "success": False,
+            "message": "Unauthorized"
+        }), 401
+
+    conn = db()
+    c = conn.cursor()
+
+    ###########################################################
+    # Total devices
+    ###########################################################
+
+    c.execute(
+        """
+        SELECT COUNT(*)
+        FROM devices
+        """
     )
+
+    device_count = c.fetchone()[0]
+
+    ###########################################################
+    # Active authenticated devices
+    ###########################################################
+
+    c.execute(
+        """
+        SELECT
+            username,
+            ip,
+            mac
+        FROM devices
+        WHERE authenticated=1
+        ORDER BY last_seen DESC
+        """
+    )
+
+    active_devices = []
+
+    for row in c.fetchall():
+
+        active_devices.append({
+            "username": row[0],
+            "ip": row[1],
+            "mac": row[2]
+        })
+
+    ###########################################################
+    # Successful login count
+    ###########################################################
+
+    c.execute(
+        """
+        SELECT COUNT(*)
+        FROM logs
+        WHERE action='LOGIN'
+        """
+    )
+
+    successful_logins = c.fetchone()[0]
+
+    ###########################################################
+    # Recent successful logins
+    ###########################################################
+
+    c.execute(
+        """
+        SELECT
+            username,
+            action,
+            time
+        FROM logs
+        WHERE action='LOGIN'
+        ORDER BY id DESC
+        LIMIT 10
+        """
+    )
+
+    recent_logins = []
+
+    for row in c.fetchall():
+
+        recent_logins.append({
+            "username": row[0],
+            "action": row[1],
+            "time": row[2]
+        })
+
+    ###########################################################
+    # Pending registrations
+    ###########################################################
+
+    c.execute(
+        """
+        SELECT COUNT(*)
+        FROM users
+        WHERE status='pending'
+        """
+    )
+
+    pending_count = c.fetchone()[0]
+
+    conn.close()
+
+    ###########################################################
+    # Return dashboard data
+    ###########################################################
+
+    return jsonify({
+
+        "success": True,
+
+        "device_count": device_count,
+
+        "active_users": len(active_devices),
+
+        "successful_logins": successful_logins,
+
+        "pending_count": pending_count,
+
+        "active_devices": active_devices,
+
+        "recent_logins": recent_logins
+
+    })
+
+
+###############################################################
+# ADMIN LOGOUT
+###############################################################
+
+@app.route("/admin_logout")
+def admin_logout():
+
+    session.pop("admin", None)
+
+    return redirect("/portal")
 
 ###############################################################
 # USERS
@@ -421,44 +557,69 @@ def dashboard():
 def users():
 
     if "admin" not in session:
-
         return redirect("/admin")
+
+    search_mac = request.args.get("mac", "").strip().lower()
 
     conn = db()
     c = conn.cursor()
 
-    c.execute(
-        """
-        SELECT
-            u.id,
-            u.username,
-            u.role,
-            d.mac,
-            d.ip,
-            d.authenticated,
-            u.status
-        FROM users u
+    if search_mac:
 
-        LEFT JOIN devices d
+        c.execute(
+            """
+            SELECT
+                u.id,
+                u.username,
+                u.role,
+                d.mac,
+                d.ip,
+                d.authenticated,
+                u.status
+            FROM users u
+            LEFT JOIN devices d
+                ON u.username = d.username
+            WHERE LOWER(d.mac) LIKE ?
+            ORDER BY u.id
+            """,
+            (
+                f"%{search_mac}%",
+            )
+        )
 
-        ON u.username=d.username
+    else:
 
-        ORDER BY u.id
-        """
-    )
+        c.execute(
+            """
+            SELECT
+                u.id,
+                u.username,
+                u.role,
+                d.mac,
+                d.ip,
+                d.authenticated,
+                u.status
+            FROM users u
+            LEFT JOIN devices d
+                ON u.username = d.username
+            ORDER BY u.id
+            """
+        )
 
     users = c.fetchall()
 
     conn.close()
 
     return render_template(
-
         "admin/users.html",
-
-        users=users
-
+        users=users,
+        search_mac=search_mac,
+        active_page="users"
     )
 
+
+
+    
 ###############################################################
 # APPROVE USER
 ###############################################################
@@ -516,6 +677,8 @@ def delete_user(id):
     conn.close()
 
     return redirect("/users")
+
+
 
 ###############################################################
 # HEALTH CHECK

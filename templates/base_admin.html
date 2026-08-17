@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>{% block title %}Eden NAC{% endblock %}</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #020617;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #cbd5f5;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .sidebar a:hover {
+            background: #1e293b;
+        }
+
+        .sidebar .section {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 18px 20px 5px;
+        }
+
+        .submenu {
+            padding-left: 15px;
+        }
+
+        .submenu a {
+            font-size: 13px;
+        }
+
+        .main {
+            margin-left: 250px;
+            padding: 25px;
+            min-height: 100vh;
+        }
+
+        .header {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .active {
+            background: #1e293b;
+            border-left: 3px solid #38bdf8;
+        }
+
+        .logout {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+}
+
+.logout a {
+    color: #ef4444 !important;
+    font-weight: bold;
+}
+
+.logout a:hover {
+    background: #450a0a !important;
+    color: #f87171 !important;
+}
+
+
+
+    </style>
+
+    {% block extra_style %}{% endblock %}
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <h2>Eden NAC</h2>
+
+
+    <div class="section">
+        Main
+    </div>
+
+    <a
+        href="/dashboard"
+        class="{% if active_page == 'dashboard' %}active{% endif %}"
+    >
+        Dashboard
+    </a>
+
+
+    <div class="section">
+        Users & Hosts
+    </div>
+
+    <div class="submenu">
+
+        <a
+            href="/users"
+            class="{% if active_page == 'users' %}active{% endif %}"
+        >
+            Manage Users
+        </a>
+
+        <a href="/users?status=pending">
+            Approve Registrations
+        </a>
+
+    </div>
+
+
+    <div class="section">
+        Network
+    </div>
+
+    <div class="submenu">
+
+        <a href="#">
+            Service Connectors
+        </a>
+
+        <a href="#">
+            CLI Configuration
+        </a>
+
+        <a href="#">
+            L2 Polling
+        </a>
+
+        <a href="#">
+            L3 Polling
+        </a>
+
+        <a href="#">
+            Network Events
+        </a>
+
+    </div>
+
+
+    <div class="section">
+        Policy & Objects
+    </div>
+
+    <a href="#">
+        Policy
+    </a>
+
+
+    <div class="section">
+        Portal
+    </div>
+
+    <a href="/portal">
+        Captive Portal
+    </a>
+
+
+    <div class="section">
+        Logs
+    </div>
+
+    <a
+        href="/logs"
+        class="{% if active_page == 'logs' %}active{% endif %}"
+    >
+        Network Logs
+    </a>
+
+
+    <div class="section">
+        System
+    </div>
+
+    <a href="#">
+        System
+    </a>
+
+    
+    <div class="logout">
+
+    <a href="/admin_logout">
+        ⏻ Logout
+    </a>
+
+</div>
+
+</div>
+
+
+<!-- PAGE CONTENT -->
+
+<div class="main">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+
+{% block extra_script %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,234 +1,288 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-    <title>Eden NAC Login</title>
+    <title>Eden NAC - Administrator Login</title>
 
-    <style>
 
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
+<style>
 
-        body{
-            background:
-                linear-gradient(
-                    135deg,
-                    #0f172a,
-                    #111827,
-                    #1e293b
-                );
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-            color:white;
-            font-family:Arial, Helvetica, sans-serif;
+    body {
+        background:
+            radial-gradient(
+                circle at top,
+                #1e293b,
+                #020617 70%
+            );
 
-            display:flex;
-            justify-content:center;
-            align-items:center;
+        color: white;
+        font-family: Arial, Helvetica, sans-serif;
 
-            height:100vh;
-        }
+        display: flex;
+        justify-content: center;
+        align-items: center;
 
-        .box{
+        height: 100vh;
+    }
 
-            background:rgba(30,41,59,0.95);
+    .box {
 
-            width:400px;
+        background: rgba(2, 6, 23, 0.96);
 
-            padding:45px;
+        width: 400px;
 
-            border-radius:18px;
+        padding: 45px;
 
-            box-shadow:
-                0 0 30px rgba(56,189,248,0.2);
+        border-radius: 18px;
 
-            backdrop-filter:blur(10px);
-        }
+        border: 1px solid #334155;
 
-        h2{
-            text-align:center;
+        box-shadow:
+            0 0 35px rgba(239, 68, 68, 0.15);
 
-            margin-bottom:30px;
+        backdrop-filter: blur(10px);
+    }
 
-            font-size:30px;
+    .logo {
 
-            color:#38bdf8;
-        }
+        text-align: center;
 
-        .subtitle{
-            text-align:center;
+        font-size: 55px;
 
-            color:#cbd5e1;
+        margin-bottom: 15px;
+    }
 
-            margin-bottom:25px;
+    .admin-label {
 
-            font-size:14px;
-        }
+        text-align: center;
 
-        input{
+        color: #ef4444;
 
-            width:100%;
+        font-size: 12px;
 
-            padding:14px;
+        font-weight: bold;
 
-            margin-top:15px;
+        letter-spacing: 2px;
 
-            border:none;
+        margin-bottom: 8px;
 
-            border-radius:10px;
+        text-transform: uppercase;
+    }
 
-            background:#334155;
+    h2 {
 
-            color:white;
+        text-align: center;
 
-            font-size:15px;
+        margin-bottom: 10px;
 
-            outline:none;
+        font-size: 30px;
 
-            transition:0.3s;
-        }
+        color: #f8fafc;
+    }
 
-        input:focus{
+    .subtitle {
 
-            border:1px solid #38bdf8;
+        text-align: center;
 
-            box-shadow:
-                0 0 10px rgba(56,189,248,0.4);
-        }
+        color: #94a3b8;
 
-        button{
+        margin-bottom: 25px;
 
-            width:100%;
+        font-size: 14px;
+    }
 
-            padding:14px;
+    input {
 
-            margin-top:18px;
+        width: 100%;
 
-            border:none;
+        padding: 14px;
 
-            border-radius:10px;
+        margin-top: 15px;
 
-            background:#38bdf8;
+        border: 1px solid #334155;
 
-            color:white;
+        border-radius: 10px;
 
-            font-size:15px;
+        background: #0f172a;
 
-            font-weight:bold;
+        color: white;
 
-            cursor:pointer;
+        font-size: 15px;
 
-            transition:0.3s;
-        }
+        outline: none;
 
-        button:hover{
+        transition: 0.3s;
+    }
 
-            transform:translateY(-2px);
+    input:focus {
 
-            background:#0ea5e9;
+        border: 1px solid #ef4444;
 
-            box-shadow:
-                0 0 15px rgba(56,189,248,0.5);
-        }
+        box-shadow:
+            0 0 10px rgba(239, 68, 68, 0.25);
+    }
 
-        .register-btn{
+    button {
 
-            background:#1e40af;
-        }
+        width: 100%;
 
-        .register-btn:hover{
+        padding: 14px;
 
-            background:#2563eb;
-        }
+        margin-top: 18px;
 
-        #snackbar{
+        border: none;
 
-            visibility:hidden;
+        border-radius: 10px;
 
-            min-width:300px;
+        background: #dc2626;
 
-            text-align:center;
+        color: white;
 
-            border-radius:10px;
+        font-size: 15px;
 
-            padding:18px;
+        font-weight: bold;
 
-            position:fixed;
+        cursor: pointer;
 
-            left:50%;
+        transition: 0.3s;
+    }
 
-            bottom:30px;
+    button:hover {
 
-            transform:translateX(-50%);
+        transform: translateY(-2px);
 
-            color:white;
+        background: #ef4444;
 
-            font-weight:bold;
+        box-shadow:
+            0 0 15px rgba(239, 68, 68, 0.35);
+    }
 
-            z-index:999;
-        }
+    .server-status {
 
-        #snackbar.show{
-            visibility:visible;
-        }
+        text-align: center;
 
-        .logo{
+        margin-top: 25px;
 
-            text-align:center;
+        padding-top: 18px;
 
-            font-size:55px;
+        border-top: 1px solid #1e293b;
 
-            margin-bottom:15px;
-        }
+        color: #64748b;
 
-    </style>
+        font-size: 12px;
+    }
+
+    .status-dot {
+
+        display: inline-block;
+
+        width: 7px;
+
+        height: 7px;
+
+        background: #22c55e;
+
+        border-radius: 50%;
+
+        margin-right: 6px;
+    }
+
+    #snackbar {
+
+        visibility: hidden;
+
+        min-width: 300px;
+
+        text-align: center;
+
+        border-radius: 10px;
+
+        padding: 18px;
+
+        position: fixed;
+
+        left: 50%;
+
+        bottom: 30px;
+
+        transform: translateX(-50%);
+
+        color: white;
+
+        font-weight: bold;
+
+        z-index: 999;
+    }
+
+    #snackbar.show {
+
+        visibility: visible;
+    }
+
+</style>
+
+
 </head>
 
 <body>
 
 <div class="box">
 
-    <div class="logo">
-        🔐
-    </div>
+<div class="logo">
+    🛡️
+</div>
 
-    <h2>Eden NAC</h2>
+<div class="admin-label">
+    Administrator Access
+</div>
 
-    <p class="subtitle">
-        Secure Network Access Control System
-    </p>
+<h2>
+    Eden NAC
+</h2>
 
-    <form id="loginForm">
+<p class="subtitle">
+    Network Access Control Management Console
+</p>
 
-        <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            required
-        >
 
-        <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-        >
+<form id="loginForm">
 
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
-
-    <button
-        class="register-btn"
-        onclick="window.location.href='/register'"
+    <input
+        type="text"
+        name="username"
+        placeholder="Administrator Username"
+        required
     >
-        Register Device
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Administrator Password"
+        required
+    >
+
+    <button type="submit">
+        Access Management Console
     </button>
 
+</form>
+
+
+<div class="server-status">
+
+    <span class="status-dot"></span>
+
+    NAC Server Management Interface
+
 </div>
+
+
 
 <div id="snackbar"></div>
 
@@ -236,25 +290,31 @@
 
 const form = document.getElementById("loginForm");
 
-form.addEventListener("submit", async function(e){
+form.addEventListener("submit", async function(e) {
 
     e.preventDefault();
 
     const formData = new FormData(form);
 
-    const response = await fetch("/login", {
-        method:"POST",
-        body:formData
+    const response = await fetch("/admin", {
+        method: "POST",
+        body: formData
     });
-
-    const data = await response.json();
 
     const snackbar = document.getElementById("snackbar");
 
-    snackbar.innerText = data.message;
+    if (response.ok) {
 
-    snackbar.style.background =
-        data.success ? "#16a34a" : "#dc2626";
+        window.location.href = "/dashboard";
+
+        return;
+    }
+
+    const data = await response.text();
+
+    snackbar.innerText = data;
+
+    snackbar.style.background = "#dc2626";
 
     snackbar.className = "show";
 
@@ -264,15 +324,6 @@ form.addEventListener("submit", async function(e){
             snackbar.className.replace("show", "");
 
     }, 3000);
-
-    if(data.success){
-
-        setTimeout(() => {
-
-            window.location.href = "/dashboard";
-
-        }, 1500);
-    }
 
 });
 

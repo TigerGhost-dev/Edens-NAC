@@ -1,105 +1,117 @@
-{% extends "base_admin.html" %}
+<!DOCTYPE html>
+<html>
+<head>
 
-{% block title %}
-Eden NAC - Manage Users
-{% endblock %}
+    <title>Manage Users</title>
+
+    <style>
+
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 280px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e293b;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #020617;
+        }
+
+        tr:nth-child(even) {
+            background: #334155;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            text-decoration: none;
+            color: white;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+
+        .delete {
+            background: red;
+        }
+
+        .approve {
+            background: green;
+        }
+
+        .approved {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .pending {
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .authenticated {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .offline {
+            color: #94a3b8;
+        }
+
+        /*
+         * Highlighted search result
+         */
+
+        .highlight {
+            background: #14532d !important;
+            box-shadow: inset 0 0 0 2px #22c55e;
+        }
+
+        .search-info {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            color: #94a3b8;
+        }
+
+    </style>
+
+</head>
 
 
-{% block extra_style %}
+<body>
 
-<style>
-
-    input {
-        padding: 8px;
-        margin-bottom: 10px;
-        width: 280px;
-        border-radius: 5px;
-        border: none;
-    }
-
-    button {
-        padding: 8px 14px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #1e293b;
-        margin-top: 10px;
-    }
-
-    th, td {
-        padding: 10px;
-        text-align: left;
-    }
-
-    th {
-        background: #020617;
-    }
-
-    tr:nth-child(even) {
-        background: #334155;
-    }
-
-    .btn {
-        padding: 5px 10px;
-        text-decoration: none;
-        color: white;
-        border-radius: 5px;
-        margin-right: 5px;
-    }
-
-    .delete {
-        background: red;
-    }
-
-    .approve {
-        background: green;
-    }
-
-    .approved {
-        color: #22c55e;
-        font-weight: bold;
-    }
-
-    .pending {
-        color: #f59e0b;
-        font-weight: bold;
-    }
-
-    .authenticated {
-        color: #22c55e;
-        font-weight: bold;
-    }
-
-    .offline {
-        color: #94a3b8;
-    }
-
-    .highlight {
-        background: #14532d !important;
-        box-shadow: inset 0 0 0 2px #22c55e;
-    }
-
-    .search-info {
-        margin-top: 5px;
-        margin-bottom: 15px;
-        color: #94a3b8;
-    }
-
-</style>
-
-{% endblock %}
-
-
-{% block content %}
-
-<div class="header">
+<h2>
     Manage Users & Hosts
-</div>
+</h2>
 
 
 <form method="GET" action="/users">
@@ -126,13 +138,9 @@ Eden NAC - Manage Users
     <strong>{{ search_mac }}</strong>
 
     {% if users|length == 0 %}
-
         — No matching device found.
-
     {% else %}
-
         — {{ users|length }} result(s) found.
-
     {% endif %}
 
 </div>
@@ -145,11 +153,17 @@ Eden NAC - Manage Users
     <tr>
 
         <th>ID</th>
+
         <th>Username</th>
+
         <th>MAC</th>
+
         <th>IP</th>
+
         <th>Authentication</th>
+
         <th>Status</th>
+
         <th>Actions</th>
 
     </tr>
@@ -157,9 +171,7 @@ Eden NAC - Manage Users
 
     {% for u in users %}
 
-    <tr
-        class="{% if search_mac and search_mac|lower in (u[3] or '')|lower %}highlight{% endif %}"
-    >
+    <tr class="{% if search_mac and search_mac|lower in (u[3] or '')|lower %}highlight{% endif %}">
 
         <td>
             {{ u[0] }}
@@ -243,4 +255,6 @@ Eden NAC - Manage Users
 
 </table>
 
-{% endblock %}
+
+</body>
+</html>
